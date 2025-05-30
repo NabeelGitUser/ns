@@ -1,0 +1,71 @@
+keytool -genkeypair -alias serverkey -keyalg RSA -keysize 2048 -keystore serverkeystore.jks -storetype JKS
+
+
+import javax.net.ssl.*;
+import java.io.*;
+import java.security.KeyStore;
+
+public class SSLServer {
+    public static void main(String[] args) throws Exception {
+        // Load server keystore
+        KeyStore ks = KeyStore.getInstance("JKS");
+        ks.load(new FileInputStream("serverkeystore.jks"), "password".toCharArray());
+
+        // Set up key manager
+        KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+        kmf.init(ks, "password".toCharArray());
+
+        // Initialize SSL context
+        SSLContext sc = SSLContext.getInstance("TLS");
+        sc.init(kmf.getKeyManagers(), null, null);
+
+        SSLServerSocketFactory ssf = sc.getServerSocketFactory();
+        SSLServerSocket s = (SSLServerSocket) ssf.createServerSocket(8443);
+
+        System.out.println("Server started. Waiting for client...");
+        SSLSocket client = (SSLSocket) s.accept();
+
+        BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
+        String msg = in.readLine();
+        System.out.println("Received (confidential and intact): " + msg);
+
+        client.close();
+        s.close();
+    }
+}
+
+
+
+
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManagerFactory;
+import java.io.FileInputStream;
+import java.io.PrintWriter;
+import java.security.KeyStore;
+
+public class SSLClient {
+    public static void main(String[] args) throws Exception {
+        // Load server truststore (same file for demo)
+        KeyStore ts = KeyStore.getInstance("JKS");
+        ts.load(new FileInputStream("serverkeystore.jks"), "password".toCharArray());
+
+        // Set up trust manager
+        TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
+        tmf.init(ts);
+
+        // Initialize SSL context
+        SSLContext sc = SSLContext.getInstance("TLS");
+        sc.init(null, tmf.getTrustManagers(), null);
+
+        SSLSocketFactory sf = sc.getSocketFactory();
+        SSLSocket socket = (SSLSocket) sf.createSocket("localhost", 8443);
+
+        PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+        out.println("Hello over SSL!");
+
+        socket.close();
+    }
+}
