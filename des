@@ -1,0 +1,31 @@
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+import java.util.Base64;
+import java.util.Scanner;
+
+public class DESWithVisibleKey {
+    public static void main(String[] args) throws Exception {
+        Scanner sc = new Scanner(System.in);
+        System.out.print("Enter text to encrypt: ");
+        String input = sc.nextLine();
+
+        // Fixed 8-byte DES key (symmetric key)
+        String keyString = "MySecrK1"; // 8 characters = 64-bit key
+        SecretKey key = new SecretKeySpec(keyString.getBytes(), "DES");
+
+        // Encrypt
+        Cipher cipher = Cipher.getInstance("DES/ECB/PKCS5Padding");
+        cipher.init(Cipher.ENCRYPT_MODE, key);
+        String encrypted = Base64.getEncoder().encodeToString(cipher.doFinal(input.getBytes()));
+
+        // Decrypt
+        cipher.init(Cipher.DECRYPT_MODE, key);
+        String decrypted = new String(cipher.doFinal(Base64.getDecoder().decode(encrypted)));
+
+        // Output
+        System.out.println("Symmetric Key (Base64): " + Base64.getEncoder().encodeToString(key.getEncoded()));
+        System.out.println("Encrypted Text        : " + encrypted);
+        System.out.println("Decrypted Text        : " + decrypted);
+    }
+}
