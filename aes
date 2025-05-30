@@ -1,0 +1,45 @@
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
+import java.security.MessageDigest;
+import java.util.Base64;
+import java.util.Scanner;
+
+public class AESFlexibleKey {
+
+    // Generate AES key (128-bit) from any-length string using SHA-256
+    private static SecretKeySpec getAESKey(String userKey) throws Exception {
+        MessageDigest sha = MessageDigest.getInstance("SHA-256");
+        byte[] hash = sha.digest(userKey.getBytes("UTF-8"));
+        byte[] keyBytes = new byte[16]; // AES-128
+        System.arraycopy(hash, 0, keyBytes, 0, 16);
+        return new SecretKeySpec(keyBytes, "AES");
+    }
+
+    public static void main(String[] args) throws Exception {
+        Scanner sc = new Scanner(System.in);
+
+        // Get secret key and URL from user
+        System.out.print("Enter any secret key: ");
+        String keyInput = sc.nextLine();
+
+        System.out.print("Enter original URL: ");
+        String originalUrl = sc.nextLine();
+
+        SecretKeySpec key = getAESKey(keyInput);
+
+        // Encrypt
+        Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+        cipher.init(Cipher.ENCRYPT_MODE, key);
+        String encrypted = Base64.getUrlEncoder().encodeToString(cipher.doFinal(originalUrl.getBytes()));
+
+        // Decrypt
+        cipher.init(Cipher.DECRYPT_MODE, key);
+        String decrypted = new String(cipher.doFinal(Base64.getUrlDecoder().decode(encrypted)));
+
+        // Output
+        System.out.println("\n--- OUTPUT ---");
+        System.out.println("Original URL        : " + originalUrl);
+        System.out.println("Encrypted URL-safe  : " + encrypted);
+        System.out.println("Decrypted URL       : " + decrypted);
+    }
+}
