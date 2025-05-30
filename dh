@@ -1,0 +1,30 @@
+import java.math.BigInteger;
+import java.util.Random;
+
+public class CustomDiffieHellman {
+    public static void main(String[] args) {
+        // Large prime p and generator g
+        BigInteger p = new BigInteger("23");
+        BigInteger g = new BigInteger("5");
+
+        // Private keys
+        BigInteger a = new BigInteger("17"); // Alice
+        BigInteger b = new BigInteger("19"); // Bob
+
+        // Public keys
+        BigInteger A = g.modPow(a, p); // g^a mod p
+        BigInteger B = g.modPow(b, p); // g^b mod p
+
+        // Shared secrets
+        BigInteger sharedA = B.modPow(a, p);
+        BigInteger sharedB = A.modPow(b, p);
+
+        System.out.println("Prime (p): " + p);
+        System.out.println("Generator (g): " + g);
+        System.out.println("Alice's Public Key: " + A);
+        System.out.println("Bob's Public Key: " + B);
+        System.out.println("Shared Secret (Alice): " + sharedA);
+        System.out.println("Shared Secret (Bob): " + sharedB);
+        System.out.println("Match: " + sharedA.equals(sharedB));
+    }
+}
